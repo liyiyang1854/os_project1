@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-
+#define T_CS 8
 
 class process{
 public:
@@ -49,7 +49,11 @@ int process::getnumburst(){
 int process::getiotime(){
     return io_time;
 }
-	
+
+
+void print_queue(std::vector<process> queue);
+void FCFS(std::vector<process> order_q);
+
 int main(int argc, char* argv[])
 {
 	if(argc != 2)
@@ -61,6 +65,7 @@ int main(int argc, char* argv[])
     FILE* input_file;
     input_file = fopen(argv[1], "r");
     
+    std::vector<process> order_q;
     
     while (!feof(input_file))
     {
@@ -92,5 +97,21 @@ int main(int argc, char* argv[])
     	
     	process aprocess(array[0], itime, burst, num, io);
     	
+    	order_q.push_back(aprocess);
     }
+}
+
+void print_queue(std::vector<process> queue){
+    printf("[Q");
+    if(!queue.empty()){
+        for (unsigned int i = 0; i < queue.size();i++){
+            printf(" %s",queue[i].getid());
+        }
+    }
+    printf("]");
+}
+
+void FCFS(std::vector<process> order_q){
+    int t = 0;
+    
 }
