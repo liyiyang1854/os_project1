@@ -10,6 +10,8 @@
 
 #define T_CS 8
 
+//================================================================
+
 class process{
 public:
 	process(char* id, int itime, int burst, int num, int io);
@@ -32,7 +34,7 @@ public:
 	char* proc_id;
 	int initial_time, burst_time, num_bursts, io_time, burstst, iot, tmptesk;
 };
-
+//-----------------------------------------------------------------------------
 process::process(char* id, int itime, int burst, int num, int io){
 	proc_id = id;
 	initial_time = itime;
@@ -60,12 +62,15 @@ void process::iochange(){iot = io_time;}
 void process::io_one(){iot--;}
 void process::changeio(int a){iot += a;}
 
+//-----------------------------------------------------------------------------
 bool FCFS_Sort(process a, process b){return a.getitiem()<b.getitiem();}
 bool SJF_Sort(process a, process b){return a.getbursttime()<b.getbursttime();}
 
 void print_queue(std::vector<process> queue);
 void FCFS(std::vector<process> order_q);
 void SJF(std::vector<process> order_q);
+
+//================================================================
 
 int main(int argc, char* argv[])
 {
@@ -118,6 +123,8 @@ int main(int argc, char* argv[])
     std::sort(order_q.begin(), order_q.end(), SJF_Sort);
     SJF(order_q);
 }
+
+//================================================================
 
 void print_queue(std::vector<process> queue){
     printf("[Q");
