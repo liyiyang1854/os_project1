@@ -35,9 +35,7 @@ public:
 	void add_to_last(int n){turnaround[turnaround.size()-1]+=n;}
     int total_tar(){
         int total = 0;
-        for(unsigned int i = 0; i< turnaround.size(); i++) {
-            total += turnaround[i];
-        }
+        for(unsigned int i = 0; i< turnaround.size(); i++) {total += turnaround[i];}
         return total;
     }
 	
@@ -155,6 +153,23 @@ void print_queue(std::vector<process> queue){
 }
 
 //----------------------------------------------------------------------------------
+void RR() {
+    while (1) {
+        //count the time
+        
+        
+        //kick out, go back to the queue
+        if () {
+            //go back to the queue
+
+
+            //kick out
+            break;
+        }
+        
+        //
+    }
+}
 
 void FCFS(std::vector<process> order_q, FILE * output_file){
     std::vector<process> waiting_q, doing_q, io_q, finished, holding, waiting_for_start;
