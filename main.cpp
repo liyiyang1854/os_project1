@@ -12,50 +12,50 @@
 
 class process{
 public:
-	process(char id, int itime, int btime, int num, int io);
+    process(char id, int itime, int btime, int num, int io);
 
-	char getid(){return proc_id;}
-	int getinitialtime(){return initial_time;}
-	int getbursttime(){return burst_time;}
-	int getnumburst(){return num_bursts;}
-	int getiotime(){return io_time;}
-	int gettmptask(){return tmptask;}
-	int getburstst(){return burstst;}
-	int getiot(){return iot;}
-	int getwaittime(){return wait_time;}
-	
-	void finishonce(){tmptask--;}
-	void burstchange(){burstst = burst_time;}
-	void burst_one(){burstst--;}
-	void iochange(){iot = io_time;}
-	void io_one(){iot--;}
-	void changeio(int a){iot += a;}
-	void addwait_time(){wait_time++;}
-	void add_newturn(int a){turnaround.push_back(a);}
-	void add_to_last(int n){turnaround[turnaround.size()-1]+=n;}
+    char getid(){return proc_id;}
+    int getinitialtime(){return initial_time;}
+    int getbursttime(){return burst_time;}
+    int getnumburst(){return num_bursts;}
+    int getiotime(){return io_time;}
+    int gettmptask(){return tmptask;}
+    int getburstst(){return burstst;}
+    int getiot(){return iot;}
+    int getwaittime(){return wait_time;}
+    
+    void finishonce(){tmptask--;}
+    void burstchange(){burstst = burst_time;}
+    void burst_one(){burstst--;}
+    void iochange(){iot = io_time;}
+    void io_one(){iot--;}
+    void changeio(int a){iot += a;}
+    void addwait_time(){wait_time++;}
+    void add_newturn(int a){turnaround.push_back(a);}
+    void add_to_last(int n){turnaround[turnaround.size()-1]+=n;}
     int total_tar(){
         int total = 0;
         for(unsigned int i = 0; i< turnaround.size(); i++) {total += turnaround[i];}
         return total;
     }
-	
-	char proc_id;
-	int initial_time, burst_time, num_bursts, io_time, burstst, iot, tmptask, wait_time;
-	std::vector<int> turnaround;
+    
+    char proc_id;
+    int initial_time, burst_time, num_bursts, io_time, burstst, iot, tmptask, wait_time;
+    std::vector<int> turnaround;
 };
 
 //----------------------------------------------------------------------------------
 
 process::process(char id, int itime, int btime, int num, int io){
-	proc_id = id;
-	initial_time = itime;
-	burst_time = btime;
-	num_bursts = num;
-	io_time = io;
-	burstst = btime;
-	iot = io;
-	tmptask = num;
-	wait_time = 0;
+    proc_id = id;
+    initial_time = itime;
+    burst_time = btime;
+    num_bursts = num;
+    io_time = io;
+    burstst = btime;
+    iot = io;
+    tmptask = num;
+    wait_time = 0;
 }
 //==================================================================================
 
@@ -69,14 +69,14 @@ void RR();
 
 bool FCFS_Sort(process a, process b){return a.getinitialtime()<b.getinitialtime();}
 bool SJF_Sort(process a, process b){return a.getbursttime()<b.getbursttime();}
-bool RR_Sort(){}
+//bool RR_Sort(){}
 //==================================================================================
 
 
 //==================================================================================
 int main(int argc, char* argv[])
 {
-	if(argc != 3)
+    if(argc != 3)
     {
         fprintf(stderr, "ERROR: Invalid arguments\nUSAGE: ./a.out <input-file> <stats-output-file>\n");
         return EXIT_FAILURE;
@@ -97,35 +97,35 @@ int main(int argc, char* argv[])
     
     while (!feof(input_file))
     {
-    	char * in_line;
-    	size_t len = 0;
-    	getline(&in_line, &len, input_file);
-    	
-    	char* array[5];
-    	
-    	if(!isalpha(in_line[0])){
-    		continue;
-    	}
-    	else{
-    	    int i = 0;
-    	    //printf("%s", in_line);
-    	    char* tmp = NULL;
-    	    tmp = strtok(in_line,"|");
-    	    while(tmp!= NULL){
-    	        array[i] = tmp;
-    	        i++;
-    	        tmp = strtok(NULL,"|");
-    	    }
-    	}
+        char * in_line;
+        size_t len = 0;
+        getline(&in_line, &len, input_file);
+        
+        char* array[5];
+        
+        if(!isalpha(in_line[0])){
+            continue;
+        }
+        else{
+            int i = 0;
+            //printf("%s", in_line);
+            char* tmp = NULL;
+            tmp = strtok(in_line,"|");
+            while(tmp!= NULL){
+                array[i] = tmp;
+                i++;
+                tmp = strtok(NULL,"|");
+            }
+        }
         char name = *array[0];
-    	int itime = atoi(array[1]);
-    	int btime = atoi(array[2]); 
-    	int num = atoi(array[3]);
-    	int io = atoi(array[4]);
-    	
-    	process aprocess(name, itime, btime, num, io);
-    	
-    	order_q.push_back(aprocess);
+        int itime = atoi(array[1]);
+        int btime = atoi(array[2]); 
+        int num = atoi(array[3]);
+        int io = atoi(array[4]);
+        
+        process aprocess(name, itime, btime, num, io);
+        
+        order_q.push_back(aprocess);
         //printf(" %c", order_q[0].getid());
     }
     std::sort(order_q.begin(), order_q.end(), FCFS_Sort);
@@ -153,23 +153,23 @@ void print_queue(std::vector<process> queue){
 }
 
 //----------------------------------------------------------------------------------
-void RR() {
-    while (1) {
-        //count the time
+// void RR() {
+//     while (1) {
+//         //count the time
         
         
-        //kick out, go back to the queue
-        if () {
-            //go back to the queue
+//         //kick out, go back to the queue
+//         if () {
+//             //go back to the queue
 
 
-            //kick out
-            break;
-        }
+//             //kick out
+//             break;
+//         }
         
-        //
-    }
-}
+//         //
+//     }
+// }
 
 void FCFS(std::vector<process> order_q, FILE * output_file){
     std::vector<process> waiting_q, doing_q, io_q, finished, holding, waiting_for_start;
@@ -318,9 +318,9 @@ void FCFS(std::vector<process> order_q, FILE * output_file){
             if(isend == true){
                 t_cs = T_CS;
                 isend = false;
-                context_s++;
             }
             else{t_cs = T_CS/2;}
+            context_s++;
         }
 
         if(!waiting_q.empty()){
@@ -340,9 +340,9 @@ void FCFS(std::vector<process> order_q, FILE * output_file){
         total_burst = total_burst + (finished[i].getnumburst() * finished[i].getbursttime());
         total_tar_t += finished[i].total_tar();
     }
-    avg_burst = float(total_burst/total_task);
+    avg_burst = float(total_burst)/float(total_task);   
     avg_wait = float(total_wait/total_task);
-    avg_tar_t = float(total_tar_t/total_task);
+    avg_tar_t = float(total_tar_t)/float(total_task);
     fprintf(output_file, "Algorithm FCFS\n");
     fprintf(output_file, "-- average CPU burst time: %.2f ms\n", avg_burst);
     fprintf(output_file, "-- average wait time: %.2f ms\n", avg_wait);
@@ -502,9 +502,9 @@ void SJF(std::vector<process> order_q, FILE * output_file){
             if(isend == true){
                 t_cs = T_CS;
                 isend = false;
-                context_s++;
             }
             else{t_cs = T_CS/2;}
+            context_s++;
         }
 
         if(!waiting_q.empty()){
@@ -524,9 +524,9 @@ void SJF(std::vector<process> order_q, FILE * output_file){
         total_burst = total_burst + (finished[i].getnumburst() * finished[i].getbursttime());
         total_tar_t += finished[i].total_tar();
     }
-    avg_burst = float(total_burst/total_task);
+    avg_burst = float(total_burst)/float(total_task);   
     avg_wait = float(total_wait/total_task);
-    avg_tar_t = float(total_tar_t/total_task);
+    avg_tar_t = float(total_tar_t)/float(total_task);
     fprintf(output_file, "Algorithm SJF\n");
     fprintf(output_file, "-- average CPU burst time: %.2f ms\n", avg_burst);
     fprintf(output_file, "-- average wait time: %.2f ms\n", avg_wait);
