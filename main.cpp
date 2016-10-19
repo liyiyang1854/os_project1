@@ -12,18 +12,19 @@
 
 class process{
 public:
-	process(char id, int itime, int burst, int num, int io);
+	process(char id, int itime, int btime, int num, int io);
+
 	char getid(){return proc_id;}
-	int getitiem(){return initial_time;}
+	int getinitialtime(){return initial_time;}
 	int getbursttime(){return burst_time;}
 	int getnumburst(){return num_bursts;}
 	int getiotime(){return io_time;}
-	int gettmptesk(){return tmptesk;}
+	int gettmptask(){return tmptask;}
 	int getburstst(){return burstst;}
 	int getiot(){return iot;}
-	int getwait_time(){return wait_time;}
+	int getwaittime(){return wait_time;}
 	
-	void finishonce(){tmptesk--;}
+	void finishonce(){tmptask--;}
 	void burstchange(){burstst = burst_time;}
 	void burst_one(){burstst--;}
 	void iochange(){iot = io_time;}
@@ -34,37 +35,47 @@ public:
 	void add_to_last(int n){turnaround[turnaround.size()-1]+=n;}
     int total_tar(){
         int total = 0;
-        for(unsigned int i = 0; i< turnaround.size(); i++){
+        for(unsigned int i = 0; i< turnaround.size(); i++) {
             total += turnaround[i];
         }
         return total;
     }
 	
 	char proc_id;
-	int initial_time, burst_time, num_bursts, io_time, burstst, iot, tmptesk, wait_time;
+	int initial_time, burst_time, num_bursts, io_time, burstst, iot, tmptask, wait_time;
 	std::vector<int> turnaround;
 };
 
-process::process(char id, int itime, int burst, int num, int io){
+//----------------------------------------------------------------------------------
+
+process::process(char id, int itime, int btime, int num, int io){
 	proc_id = id;
 	initial_time = itime;
-	burst_time = burst;
+	burst_time = btime;
 	num_bursts = num;
 	io_time = io;
-	burstst = burst;
+	burstst = btime;
 	iot = io;
-	tmptesk = num;
+	tmptask = num;
 	wait_time = 0;
 }
+//==================================================================================
 
 
-bool FCFS_Sort(process a, process b){return a.getitiem()<b.getitiem();}
-bool SJF_Sort(process a, process b){return a.getbursttime()<b.getbursttime();}
-
+//==================================================================================
 void print_queue(std::vector<process> queue);
+
 void FCFS(std::vector<process> order_q, FILE * output_file);
 void SJF(std::vector<process> order_q, FILE * output_file);
+void RR();
 
+bool FCFS_Sort(process a, process b){return a.getinitialtime()<b.getinitialtime();}
+bool SJF_Sort(process a, process b){return a.getbursttime()<b.getbursttime();}
+bool RR_Sort(){}
+//==================================================================================
+
+
+//==================================================================================
 int main(int argc, char* argv[])
 {
 	if(argc != 3)
@@ -110,11 +121,11 @@ int main(int argc, char* argv[])
     	}
         char name = *array[0];
     	int itime = atoi(array[1]);
-    	int burst = atoi(array[2]); 
+    	int btime = atoi(array[2]); 
     	int num = atoi(array[3]);
     	int io = atoi(array[4]);
     	
-    	process aprocess(name, itime, burst, num, io);
+    	process aprocess(name, itime, btime, num, io);
     	
     	order_q.push_back(aprocess);
         //printf(" %c", order_q[0].getid());
@@ -126,7 +137,10 @@ int main(int argc, char* argv[])
     std::sort(order_q.begin(), order_q.end(), SJF_Sort);
     SJF(order_q, output_file);
 }
+//==================================================================================
 
+
+//==================================================================================
 void print_queue(std::vector<process> queue){
     printf("[Q");
     if(queue.empty()){
@@ -139,6 +153,8 @@ void print_queue(std::vector<process> queue){
     }
     printf("]\n");
 }
+
+//----------------------------------------------------------------------------------
 
 void FCFS(std::vector<process> order_q, FILE * output_file){
     std::vector<process> waiting_q, doing_q, io_q, finished, holding, waiting_for_start;
@@ -154,7 +170,7 @@ void FCFS(std::vector<process> order_q, FILE * output_file){
     while(1){
         bool this_end = false;
         for(unsigned int i = 0; i < waiting_for_start.size(); i++){
-            if(waiting_for_start[i].getitiem() == t){
+            if(waiting_for_start[i].getinitialtime() == t){
                 waiting_for_start[i].add_newturn(1);
                 waiting_q.push_back(waiting_for_start[i]);
                 printf("time %dms: Process %c arrived ", t, waiting_for_start[i].getid());
@@ -182,7 +198,7 @@ void FCFS(std::vector<process> order_q, FILE * output_file){
         if(!doing_q.empty()){
             doing_q[0].burst_one();
             doing_q[0].add_to_last(1);
-            if(doing_q[0].getburstst()== 0 && doing_q[0].gettmptesk()== 1){
+            if(doing_q[0].getburstst()== 0 && doing_q[0].gettmptask()== 1){
                 doing_q[0].add_to_last(T_CS/2);
                 finished.push_back(doing_q[0]);
                 printf("time %dms: Process %c terminated ", t, doing_q[0].getid());
@@ -196,9 +212,9 @@ void FCFS(std::vector<process> order_q, FILE * output_file){
                 isend = true;
                 this_end = true;
             }
-            else if(doing_q[0].getburstst()== 0 && doing_q[0].gettmptesk()!= 1){
+            else if(doing_q[0].getburstst()== 0 && doing_q[0].gettmptask()!= 1){
                 doing_q[0].finishonce();
-                printf("time %dms: Process %c completed a CPU burst; %d to go ", t, doing_q[0].getid(), doing_q[0].gettmptesk());
+                printf("time %dms: Process %c completed a CPU burst; %d to go ", t, doing_q[0].getid(), doing_q[0].gettmptask());
                 print_queue(waiting_q);
                 printf("time %dms: Process %c blocked on I/O until time %dms ", t, doing_q[0].getid(), t+doing_q[0].getiot());
                 print_queue(waiting_q);
@@ -305,7 +321,7 @@ void FCFS(std::vector<process> order_q, FILE * output_file){
     total_tar_t = total_burst = total_wait = avg_tar_t = avg_burst = total_task = avg_wait = 0;
     for(unsigned int i = 0; i < finished.size(); i++){
         total_task += finished[i].getnumburst();
-        total_wait += finished[i].getwait_time();
+        total_wait += finished[i].getwaittime();
         total_burst = total_burst + (finished[i].getnumburst() * finished[i].getbursttime());
         total_tar_t += finished[i].total_tar();
     }
@@ -319,6 +335,8 @@ void FCFS(std::vector<process> order_q, FILE * output_file){
     fprintf(output_file, "-- total number of context switches: %d\n", context_s);
     fprintf(output_file, "-- total number of preemptions: %d\n", preemption);
 }
+
+//----------------------------------------------------------------------------------
 
 void SJF(std::vector<process> order_q, FILE * output_file){
     std::vector<process> waiting_q, doing_q, io_q, finished, holding, waiting_for_start;
@@ -334,7 +352,7 @@ void SJF(std::vector<process> order_q, FILE * output_file){
     while(1){
         bool this_end = false;
         for(unsigned int i = 0; i < waiting_for_start.size(); i++){
-            if(waiting_for_start[i].getitiem() == t){
+            if(waiting_for_start[i].getinitialtime() == t){
                 waiting_for_start[i].add_newturn(1);
                 waiting_q.push_back(waiting_for_start[i]);
                 printf("time %dms: Process %c arrived ", t, waiting_for_start[i].getid());
@@ -362,7 +380,7 @@ void SJF(std::vector<process> order_q, FILE * output_file){
         if(!doing_q.empty()){
             doing_q[0].burst_one();
             doing_q[0].add_to_last(1);
-            if(doing_q[0].getburstst()== 0 && doing_q[0].gettmptesk()== 1){
+            if(doing_q[0].getburstst()== 0 && doing_q[0].gettmptask()== 1){
                 doing_q[0].add_to_last(T_CS/2);
                 finished.push_back(doing_q[0]);
                 printf("time %dms: Process %c terminated ", t, doing_q[0].getid());
@@ -376,9 +394,9 @@ void SJF(std::vector<process> order_q, FILE * output_file){
                 isend = true;
                 this_end = true;
             }
-            else if(doing_q[0].getburstst()== 0 && doing_q[0].gettmptesk()!= 1){
+            else if(doing_q[0].getburstst()== 0 && doing_q[0].gettmptask()!= 1){
                 doing_q[0].finishonce();
-                printf("time %dms: Process %c completed a CPU burst; %d to go ", t, doing_q[0].getid(), doing_q[0].gettmptesk());
+                printf("time %dms: Process %c completed a CPU burst; %d to go ", t, doing_q[0].getid(), doing_q[0].gettmptask());
                 print_queue(waiting_q);
                 printf("time %dms: Process %c blocked on I/O until time %dms ", t, doing_q[0].getid(), t+doing_q[0].getiot());
                 print_queue(waiting_q);
@@ -487,7 +505,7 @@ void SJF(std::vector<process> order_q, FILE * output_file){
     total_tar_t = total_burst = total_wait = avg_tar_t = avg_burst = total_task = avg_wait = 0;
     for(unsigned int i = 0; i < finished.size(); i++){
         total_task += finished[i].getnumburst();
-        total_wait += finished[i].getwait_time();
+        total_wait += finished[i].getwaittime();
         total_burst = total_burst + (finished[i].getnumburst() * finished[i].getbursttime());
         total_tar_t += finished[i].total_tar();
     }
