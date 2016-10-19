@@ -153,23 +153,30 @@ void print_queue(std::vector<process> queue){
 }
 
 //----------------------------------------------------------------------------------
-// void RR() {
-//     while (1) {
-//         //count the time
-        
-        
-//         //kick out, go back to the queue
-//         if () {
-//             //go back to the queue
+void RR() {
+    
+    std::vector<process> waiting_q, doing_q, io_q, finished, holding, waiting_for_start;
+    int t = 0;
+    waiting_for_start = order_q;
+    printf("time %dms: Simulator started for RR ", t);
+    print_queue(waiting_q);
+    
+    while (1) {
+        //count the time
 
 
-//             //kick out
-//             break;
-//         }
+        //kick out, go back to the queue
+        if () {
+            //go back to the queue
+
+
+            //kick out
+            break;
+        }
         
-//         //
-//     }
-// }
+        //
+    }
+}
 
 void FCFS(std::vector<process> order_q, FILE * output_file){
     std::vector<process> waiting_q, doing_q, io_q, finished, holding, waiting_for_start;
