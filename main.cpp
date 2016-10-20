@@ -207,11 +207,34 @@ void RR(std::vector<process> order_q, FILE * output_file, int t_slice) {
                 }
             }
         }
+
+        //--------------------
         std::vector<process> io_buffer; //store the process that finished I/O
         
+        if ( !holding_q.empty() ) { // in the context switch
+
+            t_cs--; // decrease context switch time
+
+            //holding[0].addwait_time();
+
+            if ( t_cs == 0 ) { //finish context switch
+
+                doing_q.push_back(holding_q[0]); //add to CPU
+                printf("time %dms: Process %c started using the CPU ", t, holding_q[0].getid());
+                print_queue(waiting_q);
+                holding_q.clear(); //will just have one process in holding queue 
+                notempty = false; // holding queue is empty
+
+                //t_cs--
+            }
+            else {
+                holding_q[0].add_to_last(1); // for tongji
+            }
+        }
+
         //--------------------
 
-        if (t_slice_count == t_slice) { // current process reaches time limit
+        if (t_slice_count == t_slice && doing_q[0].gettmpbursttime() != 0) { // current process reaches time limit
             t_slice_count = 0;
             
             if ( !waiting_q.empty() ) {
@@ -238,12 +261,11 @@ void RR(std::vector<process> order_q, FILE * output_file, int t_slice) {
         if ( !doing_q.empty() ) { // CPU has process running
             
 
-            doing_q[0].burst_one();
-            doing_q[0].add_to_last(1);
-            t_slice_count ++;
+            
             if ( doing_q[0].gettmpbursttime() == 0 && doing_q[0].gettmptask() == 1 ) {
                 doing_q[0].add_to_last(T_CS/2);
                 finished.push_back(doing_q[0]);
+                t_slice_count = 0;
                 printf("time %dms: Process %c terminated ", t, doing_q[0].getid());
                 print_queue(waiting_q);
                 if (!waiting_q.empty()){
@@ -276,29 +298,15 @@ void RR(std::vector<process> order_q, FILE * output_file, int t_slice) {
                 isend = true;
                 this_end = true;
             }
+            else {
+                doing_q[0].burst_one();
+                doing_q[0].add_to_last(1);
+                t_slice_count ++;
+            }
             //t_slice_count ++;
         }
 
-        if ( !holding_q.empty() ) { // in the context switch
-
-            t_cs--; // decrease context switch time
-
-            //holding[0].addwait_time();
-
-            if ( t_cs == 0 ) { //finish context switch
-
-                doing_q.push_back(holding_q[0]); //add to CPU
-                printf("time %dms: Process %c started using the CPU ", t, holding_q[0].getid());
-                print_queue(waiting_q);
-                holding_q.clear(); //will just have one process in holding queue 
-                notempty = false; // holding queue is empty
-
-                //t_cs--
-            }
-            else {
-                holding_q[0].add_to_last(1); // for tongji
-            }
-        }
+        
 
         //--------------------
         if( !io_q.empty() ) { // have processes in the io queue
@@ -373,34 +381,38 @@ void RR(std::vector<process> order_q, FILE * output_file, int t_slice) {
             }
         }
 
-        //--------------------
-        //check if no more processes
-        //perform context switch for the last process
-
-        int total_tar_t, total_burst, total_wait, total_task;
-        float avg_tar_t, avg_burst, avg_wait;
-        total_tar_t = total_burst = total_wait = avg_tar_t = avg_burst = total_task = avg_wait = 0;
-        for(unsigned int i = 0; i < finished.size(); i++){
-            total_task += finished[i].getnumburst();
-            total_wait += finished[i].getwaittime();
-            total_burst = total_burst + (finished[i].getnumburst() * finished[i].getbursttime());
-            total_tar_t += finished[i].total_tar();
-            //fprintf(output_file, "%c, %d\n", finished[i].getid(), finished[i].getwaittime());
-        }
-        avg_burst = float(total_burst)/float(total_task);   
-        avg_wait = float(total_wait)/float(total_task);
-        avg_tar_t = float(total_tar_t)/float(total_task);
-        // fprintf(output_file, "-- total wait time: %d ms\n", total_wait);
-        // fprintf(output_file, "-- total turnaround time: %d ms\n", total_tar_t );
-        fprintf(output_file, "Algorithm FCFS\n");
-        fprintf(output_file, "-- average CPU burst time: %.2f ms\n", avg_burst);
-        fprintf(output_file, "-- average wait time: %.2f ms\n", avg_wait);
-        fprintf(output_file, "-- average turnaround time: %.2f ms\n", avg_tar_t );
-        fprintf(output_file, "-- total number of context switches: %d\n", context_s);
-        fprintf(output_file, "-- total number of preemptions: %d\n", preemption);
+        
         
         t++;
+        //printf("#######time %d\n",t );
     }
+    //--------------------
+    //check if no more processes
+    //perform context switch for the last process
+    
+    int total_tar_t, total_burst, total_wait, total_task;
+    float avg_tar_t, avg_burst, avg_wait;
+    total_tar_t = total_burst = total_wait = avg_tar_t = avg_burst = total_task = avg_wait = 0;
+    for(unsigned int i = 0; i < finished.size(); i++){
+        total_task += finished[i].getnumburst();
+        total_wait += finished[i].getwaittime();
+        total_burst = total_burst + (finished[i].getnumburst() * finished[i].getbursttime());
+        total_tar_t += finished[i].total_tar();
+        //fprintf(output_file, "%c, %d\n", finished[i].getid(), finished i].getwaittime());
+    }
+    
+    avg_burst = float(total_burst)/float(total_task);   
+    avg_wait = float(total_wait)/float(total_task);
+    avg_tar_t = float(total_tar_t)/float(total_task);
+    // fprintf(output_file, "-- total wait time: %d ms\n", total_wait);
+    // fprintf(output_file, "-- total turnaround time: %d ms\n", total_tar_t );
+    
+    fprintf(output_file, "Algorithm FCFS\n");
+    fprintf(output_file, "-- average CPU burst time: %.2f ms\n", avg_burst);
+    fprintf(output_file, "-- average wait time: %.2f ms\n", avg_wait);
+    fprintf(output_file, "-- average turnaround time: %.2f ms\n", avg_tar_t );
+    fprintf(output_file, "-- total number of context switches: %d\n", context_s);
+    fprintf(output_file, "-- total number of preemptions: %d\n", preemption);
 }
 
 
