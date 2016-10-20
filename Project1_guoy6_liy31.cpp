@@ -325,14 +325,13 @@ void RR(std::vector<process> order_q, FILE * output_file, int t_slice) {
                 if( io_q[i].getiot() == 0 ) {
                     io_q[i].iochange();
 
-                    //check 
+                    //check if doing_q is empty and notempty
                     if(doing_q.empty() && notempty == false){
                         
                         notempty = true;
                         if(this_end == false){isend = false;}
                         bool nopush = false;
 
-                        // 
                         for(unsigned int w = 0; w < waiting_q.size(); w++){
                             if(waiting_q[w].getid() == io_q[i].getid()){
                                 nopush = true;
@@ -342,14 +341,13 @@ void RR(std::vector<process> order_q, FILE * output_file, int t_slice) {
                         
                         if(nopush == false){
                             io_q[i].add_newturn(1); // for avg time and total numbers
-                            
+
                             waiting_q.push_back(io_q[i]);
                         }
                         
                         printf("time %dms: Process %c completed I/O ", t, io_q[i].getid());
                         print_queue(waiting_q);
                     }
-                    //check 
                     else{
                         bool nopush = false;
                         
@@ -537,6 +535,7 @@ void FCFS(std::vector<process> order_q, FILE * output_file){
         // check if in the context switch
         if(!holding.empty()){
             
+            //context switch
             t_cs--;
 
             if (t_cs == 0){
@@ -558,6 +557,8 @@ void FCFS(std::vector<process> order_q, FILE * output_file){
                 io_q[i].io_one();
                 if(io_q[i].getiot() == 0){
                     io_q[i].iochange();
+
+                    //check if doing_q is empty and notempty
                     if(doing_q.empty() && notempty == false){
                         notempty = true;
                         if(this_end == false){isend = false;}
@@ -610,6 +611,8 @@ void FCFS(std::vector<process> order_q, FILE * output_file){
             holding.push_back(waiting_q[0]);
             notempty = true;
             waiting_q.erase(waiting_q.begin());
+
+            //context switch
             if(isend == true){
                 t_cs = T_CS;
                 isend = false;
@@ -691,6 +694,7 @@ void SJF(std::vector<process> order_q, FILE * output_file){
             if(waiting_for_start[i].getinitialtime() == t) {
                 waiting_for_start[i].add_newturn(1);
                 waiting_q.push_back(waiting_for_start[i]);
+                //sort
                 std::sort(waiting_q.begin(), waiting_q.end(), SJF_Sort);
                 printf("time %dms: Process %c arrived ", t, waiting_for_start[i].getid());
                 print_queue(waiting_q);
@@ -704,7 +708,7 @@ void SJF(std::vector<process> order_q, FILE * output_file){
         //--------------------
         //check if it is last context switch
         if( waiting_q.empty() && doing_q.empty() && holding.empty() && io_q.empty() ) {
-            
+            //context switch
             if(isend == true){
                 t_cs = T_CS/2;
                 t_cs--;
@@ -789,7 +793,7 @@ void SJF(std::vector<process> order_q, FILE * output_file){
                 if(io_q[i].getiot() == 0){
                     io_q[i].iochange();
 
-                    //check if it was 
+                    //check if doing_q is empty and notempty
                     if(doing_q.empty() && notempty == false){
                         notempty = true;
                         if(this_end == false){isend = false;}
@@ -808,7 +812,6 @@ void SJF(std::vector<process> order_q, FILE * output_file){
                         printf("time %dms: Process %c completed I/O ", t, io_q[i].getid());
                         print_queue(waiting_q);
                     }
-                    //check 
                     else{
                         bool nopush = false;
                         for(unsigned int w = 0; w < waiting_q.size(); w++){
@@ -846,6 +849,7 @@ void SJF(std::vector<process> order_q, FILE * output_file){
             holding.push_back(waiting_q[0]);
             notempty = true;
             waiting_q.erase(waiting_q.begin());
+            //context switch
             if(isend == true){
                 t_cs = T_CS;
                 isend = false;
