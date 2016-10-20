@@ -119,7 +119,6 @@ int main(int argc, char* argv[])
         }
         else{
             int i = 0;
-            //printf("%s", in_line);
             char* tmp = NULL;
             tmp = strtok(in_line,"|");
             while(tmp!= NULL){
@@ -198,11 +197,14 @@ void RR(std::vector<process> order_q, FILE * output_file, int t_slice) {
         //--------------------
         //check if a process would arrive
         for(unsigned int i = 0; i < waiting_for_start.size(); i++){
-            if(waiting_for_start[i].getinitialtime() == t){ //check arrival time
+            //check arrival time
+            if(waiting_for_start[i].getinitialtime() == t){
                 waiting_for_start[i].add_newturn(1); // for avg time and total numbers
-                waiting_q.push_back(waiting_for_start[i]); //waiting_q is read queue
-                printf("time %dms: Process %c arrived ", t, waiting_for_start[i].getid()); //arrived
+                waiting_q.push_back(waiting_for_start[i]); //add process to read queue
+
+                printf("time %dms: Process %c arrived ", t, waiting_for_start[i].getid()); 
                 print_queue(waiting_q); // print the processes in the queue
+                
                 waiting_for_start.erase(waiting_for_start.begin()+i); //remove the processes
                 i--; // adjust the index
             }
@@ -234,10 +236,11 @@ void RR(std::vector<process> order_q, FILE * output_file, int t_slice) {
             t_cs--; // decrease context switch time
 
             if ( t_cs == 0 ) { //finish context switch
-
                 doing_q.push_back(holding_q[0]); //add to CPU
+                
                 printf("time %dms: Process %c started using the CPU ", t, holding_q[0].getid());
                 print_queue(waiting_q);
+
                 holding_q.clear(); //will just have one process in holding queue 
                 notempty = false; // holding queue is empty
 
@@ -252,6 +255,7 @@ void RR(std::vector<process> order_q, FILE * output_file, int t_slice) {
         if (t_slice_count == t_slice && doing_q[0].gettmpbursttime() != 0) { 
             t_slice_count = 0;
             
+            // check if have process in the ready queue
             if ( !waiting_q.empty() ) {
                 
                 printf("time %dms: Time slice expired; process %c preempted with %dms to go ",t,doing_q[0].getid(),doing_q[0].gettmpbursttime() );
@@ -274,7 +278,7 @@ void RR(std::vector<process> order_q, FILE * output_file, int t_slice) {
 
         //--------------------
         //check if CPU has process running
-        if ( !doing_q.empty() ) { 
+        if ( !doing_q.empty() ) {
             if ( doing_q[0].gettmpbursttime() == 0 && doing_q[0].gettmptask() == 1 ) {
                 
                 finished.push_back(doing_q[0]);
@@ -336,16 +340,19 @@ void RR(std::vector<process> order_q, FILE * output_file, int t_slice) {
                     }
                     else{
                         bool nopush = false;
+                        
                         for(unsigned int w = 0; w < waiting_q.size(); w++){
                             if(waiting_q[w].getid() == io_q[i].getid()){
                                 nopush = true;
                                 waiting_q[w] = io_q[i];
                             }
                         }
+                        
                         if(nopush == false){
                             io_q[i].add_newturn(1);
                             waiting_q.push_back(io_q[i]);
                         }
+                        
                         printf("time %dms: Process %c completed I/O ", t, io_q[i].getid());
                         print_queue(waiting_q);
                     }
@@ -359,7 +366,8 @@ void RR(std::vector<process> order_q, FILE * output_file, int t_slice) {
         if(!io_buffer.empty()){
             for(unsigned int i = 0; i < io_buffer.size(); i++){
                 for(unsigned int w = 0; w < io_q.size(); w++){
-                    if(io_buffer[i].getid() == io_q[w].getid()){io_q.erase(io_q.begin()+w);}}
+                    if(io_buffer[i].getid() == io_q[w].getid()) {io_q.erase(io_q.begin()+w);}
+                }
             }
         }
 
@@ -370,11 +378,13 @@ void RR(std::vector<process> order_q, FILE * output_file, int t_slice) {
             holding_q.push_back(waiting_q[0]);
             notempty = true;
             waiting_q.erase(waiting_q.begin());
+            
             if(isend == true){
                 t_cs = T_CS;
                 isend = false;
             }
             else{t_cs = T_CS/2;}
+            
             context_s++;
         }
 
