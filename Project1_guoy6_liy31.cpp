@@ -1,6 +1,5 @@
 //==================================================================================
 // This project is done by group: Yiqing Guo(guoy6), Yiyang Li(liy31)
-
 //==================================================================================
 #include <map>
 #include <iostream>
@@ -279,6 +278,7 @@ void RR(std::vector<process> order_q, FILE * output_file, int t_slice) {
         //--------------------
         //check if CPU has process running
         if ( !doing_q.empty() ) {
+            //check if the current process in the CPU is about to finish all bursts
             if ( doing_q[0].gettmpbursttime() == 0 && doing_q[0].gettmptask() == 1 ) {
                 
                 finished.push_back(doing_q[0]);
@@ -291,6 +291,7 @@ void RR(std::vector<process> order_q, FILE * output_file, int t_slice) {
                 isend = true;
                 this_end = true;
             }
+            //check if the current process in the CPU is about to finish one of bursts, not the last one
             else if ( doing_q[0].gettmpbursttime() == 0 && doing_q[0].gettmptask() != 1 ) {
                 t_slice_count = 0;
 
@@ -307,6 +308,7 @@ void RR(std::vector<process> order_q, FILE * output_file, int t_slice) {
                 isend = true;
                 this_end = true;
             }
+            // check if the current process is running
             else{
             	t_slice_count ++; // count how much current process has spent in the CPU
             	doing_q[0].burst_one();
@@ -316,28 +318,38 @@ void RR(std::vector<process> order_q, FILE * output_file, int t_slice) {
 
         //--------------------
         //check if have processes in the io queue
-        if( !io_q.empty() ) { 
+        if( !io_q.empty() ) {
             for ( unsigned int i = 0; i< io_q.size(); i++ ) {
                 io_q[i].io_one();
+                
                 if( io_q[i].getiot() == 0 ) {
                     io_q[i].iochange();
+
+                    //check 
                     if(doing_q.empty() && notempty == false){
+                        
                         notempty = true;
                         if(this_end == false){isend = false;}
                         bool nopush = false;
+
+                        // 
                         for(unsigned int w = 0; w < waiting_q.size(); w++){
                             if(waiting_q[w].getid() == io_q[i].getid()){
                                 nopush = true;
                                 waiting_q[w] = io_q[i];
                             }
                         }
+                        
                         if(nopush == false){
                             io_q[i].add_newturn(1); // for avg time and total numbers
+                            
                             waiting_q.push_back(io_q[i]);
                         }
+                        
                         printf("time %dms: Process %c completed I/O ", t, io_q[i].getid());
                         print_queue(waiting_q);
                     }
+                    //check 
                     else{
                         bool nopush = false;
                         
@@ -379,6 +391,7 @@ void RR(std::vector<process> order_q, FILE * output_file, int t_slice) {
             notempty = true;
             waiting_q.erase(waiting_q.begin());
             
+            //set context switch time
             if(isend == true){
                 t_cs = T_CS;
                 isend = false;
@@ -490,7 +503,8 @@ void FCFS(std::vector<process> order_q, FILE * output_file){
             
             doing_q[0].burst_one();
             doing_q[0].add_to_last(1);
-            
+
+            //check if the current process in the CPU is about to finish all bursts
             if(doing_q[0].gettmpbursttime()== 0 && doing_q[0].gettmptask()== 1){
                 
                 finished.push_back(doing_q[0]);
@@ -501,6 +515,7 @@ void FCFS(std::vector<process> order_q, FILE * output_file){
                 isend = true;
                 this_end = true;
             }
+            //check if the current process in the CPU is about to finish one of bursts, not the last one
             else if(doing_q[0].gettmpbursttime()== 0 && doing_q[0].gettmptask()!= 1){
                 
                 doing_q[0].finishonce();
@@ -653,10 +668,13 @@ void SJF(std::vector<process> order_q, FILE * output_file){
     //holding_q: for context switch
     //waiting_for_start: store processes from the input file
     std::vector<process> waiting_q, doing_q, io_q, finished, holding, waiting_for_start;
+    
     int t = 0;
     waiting_for_start = order_q;
+    
     printf("time %dms: Simulator started for SJF ", t);
     print_queue(waiting_q);
+    
     int t_cs =  T_CS/2;
     bool notempty = false;
     bool isend = false;
@@ -709,7 +727,7 @@ void SJF(std::vector<process> order_q, FILE * output_file){
 
             doing_q[0].burst_one();
             doing_q[0].add_to_last(1);
-            
+            //check if the current process in the CPU is about to finish all bursts
             if(doing_q[0].gettmpbursttime()== 0 && doing_q[0].gettmptask()== 1) {
                 
                 finished.push_back(doing_q[0]);
@@ -720,6 +738,7 @@ void SJF(std::vector<process> order_q, FILE * output_file){
                 isend = true;
                 this_end = true;
             }
+            //check if the current process in the CPU is about to finish one of bursts, not the last one
             else if(doing_q[0].gettmpbursttime()== 0 && doing_q[0].gettmptask()!= 1) {
                 doing_q[0].finishonce();
                 printf("time %dms: Process %c completed a CPU burst; %d to go ", t, doing_q[0].getid(), doing_q[0].gettmptask());
@@ -744,9 +763,13 @@ void SJF(std::vector<process> order_q, FILE * output_file){
 
             if (t_cs == 0){
             
+                //enter the CPU
                 doing_q.push_back(holding[0]);
+                
                 printf("time %dms: Process %c started using the CPU ", t, holding[0].getid());
                 print_queue(waiting_q);
+                
+                //finished holding
                 holding.clear();
                 notempty = false;
             
@@ -759,10 +782,14 @@ void SJF(std::vector<process> order_q, FILE * output_file){
         //--------------------
         //check if have processes in the io queue
         if(!io_q.empty()){
+
             for (unsigned int i = 0; i< io_q.size(); i++){
                 io_q[i].io_one();
+
                 if(io_q[i].getiot() == 0){
                     io_q[i].iochange();
+
+                    //check if it was 
                     if(doing_q.empty() && notempty == false){
                         notempty = true;
                         if(this_end == false){isend = false;}
@@ -781,6 +808,7 @@ void SJF(std::vector<process> order_q, FILE * output_file){
                         printf("time %dms: Process %c completed I/O ", t, io_q[i].getid());
                         print_queue(waiting_q);
                     }
+                    //check 
                     else{
                         bool nopush = false;
                         for(unsigned int w = 0; w < waiting_q.size(); w++){
@@ -797,6 +825,7 @@ void SJF(std::vector<process> order_q, FILE * output_file){
                         printf("time %dms: Process %c completed I/O ", t, io_q[i].getid());
                         print_queue(waiting_q);
                     }
+
                     io_buffer.push_back(io_q[i]);
                 }
             }
@@ -834,6 +863,7 @@ void SJF(std::vector<process> order_q, FILE * output_file){
             }
         }
         
+        //increase time
         t++;
 
     }//while(1) ends
